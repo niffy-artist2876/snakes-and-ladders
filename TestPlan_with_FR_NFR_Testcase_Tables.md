@@ -732,26 +732,7 @@ C5 is a project constraint and has no test. No test case is without an SRS refer
 
 ---
 
-## 15. Assumptions and Open Items
-
-The test cases follow the SDD where the SRS is ambiguous. These points should be confirmed with the SRS and SDD owners; the affected test cases are named so they can be updated quickly.
-
-| ID | Item | Assumption used in this plan | Affected test cases |
-|---|---|---|---|
-| OI-1 | A 6 that overshoots square 100: does it grant an extra roll? (SDD D-1) | No extra roll; the turn passes | TC-FR08-6 |
-| OI-2 | FR-15 says a game can be saved "between turns", but a turn includes extra rolls. SDD D-3 allows saving between extra rolls | Saving is allowed between extra rolls and `extra_rolls_used` is saved. If the strict reading is chosen, Save is disabled while an extra roll is pending and the saved counter is dropped | TC-FR15-2, TC-N08-1 |
-| OI-3 | UI-4 says Resume is shown only if a valid save exists. The SDD `exists()` only checks that the file is present and validates when Resume is clicked (E-06 to E-09) | SDD behaviour: Resume is visible when a file exists and a bad file gives the error message on click. If UI-4 is read strictly, Resume is hidden for an invalid file and the rejection tests drive `on_resume_requested()` directly | TC-UI4-1, TC-SEC02-*, TC-SEC03-* |
-| OI-4 | Exit requested while a token is animating is not specified (FR-17 blocks saving during a move, FR-18 requires a prompt) | Prompt is shown, Save is deferred or unavailable until the move ends, and no partial file is written | TC-FR18-6 |
-| OI-5 | "10 KB" in SEC-03 and NFR-14 | 10 KB is 10,240 bytes | TC-SEC03-1, TC-N14-2 |
-| OI-6 | FR-13 counts 1 second from the dice value being shown, NFR-01 from the roll input | The stricter one is tested (roll input to final token position), so both hold | TC-FR13-1, TC-N01-1 |
-| OI-7 | NFR-12 says "a minimum of 30 frames per second" | Measured as the average frame rate in each second of animation | TC-N12-1 |
-| OI-8 | NFR-13 gives font size in points | 14 pt is taken as about 19 px at 96 DPI | TC-N13-1 |
-| OI-9 | SRS use case diagram: only UC3 and UC10 have written descriptions. The Exit Game / Save Game extend arrow points from Exit to Save, and there is no link from Check Win to View Result (SDD 4.2, observations 1 to 3) | Tests for the other use cases are derived from the FR text. TC-FR09-1 checks that a win leads to the Result screen although the diagram shows no such link | Section 14.5 |
-| OI-10 | NFR-06 requires 80% coverage of "modules that do not import Pygame" | The gating measure is `engine/`; `persistence/` and `controller/` are reported but not gating | TC-N06-1 |
-
----
-
-## 16. Approvals
+## 15. Approvals
 
 | Role | Name | Signature | Date |
 |---|---|---|---|
