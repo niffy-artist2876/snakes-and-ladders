@@ -213,7 +213,7 @@ The complete requirement-to-design matrix is in Section 4.
 
 **Secure design principles applied:** allow-list validation, fail closed (any validation failure rejects the file), least privilege (the app reads and writes only its own save directory), defence in depth (validation at setup and at load), and no state mutation before validation succeeds.
 
-**Known limitation (to be stated honestly in the report):** an unkeyed SHA-256 checksum detects accidental corruption and casual edits, but a determined user who edits the state and recomputes the hash can still forge a save. This is accepted because the game is a single-device hot-seat game with no rewards or accounts (SO-1 is "not silently altered", not "cryptographically unforgeable"). An HMAC with an embedded key would not materially improve this.
+**Known limitation:** an unkeyed SHA-256 checksum detects accidental corruption and casual edits, but a determined user who edits the state and recomputes the hash can still forge a save. This is accepted because the game is a single-device hot-seat game with no rewards or accounts (SO-1 is "not silently altered", not "cryptographically unforgeable"). An HMAC with an embedded key would not materially improve this.
 
 ### 2.8 Deployment View
 A single OS process on the player's machine. The only external resource is a per-user save directory: `%APPDATA%/SnakesLadders` (Windows), `~/.local/share/SnakesLadders` (Linux), `~/Library/Application Support/SnakesLadders` (macOS). The file is `savegame.json`; the temp file is `savegame.json.tmp`.
