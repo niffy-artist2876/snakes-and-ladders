@@ -731,12 +731,3 @@ Every test case in Section 5 lists the SRS requirement it verifies. The matrices
 C5 is a project constraint and has no test. No test case is without an SRS reference. The two design-derived security checks (TC-SECX-1, TC-SECX-2) reference SO-1, SO-3 and NFR-10.
 
 ---
-
-## 15. Approvals
-
-| Role | Name | Signature | Date |
-|---|---|---|---|
-| Test lead | | | |
-| Development team member (reviewer) | | | |
-| SRS / SDD owner | | | |
-| Course reviewer | | | |
