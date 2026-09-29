@@ -3,7 +3,7 @@ Team members:
 1) Name: shishir hegde  SRN: PES1UG24CS438
 2) Name: Shaurya singh SRN: PES1UG24CS437
 3) Name: Sharat doddihal SRN: PES1UG24CS430
-4) Name: Shashank palcharla SRN: PES1UG24CS436
+4) Name: Shashannk palcharla SRN: PES1UG24CS436
 
 Introduction: 
 
