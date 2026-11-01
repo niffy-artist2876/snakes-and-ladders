@@ -11,7 +11,7 @@ import pytest
 
 from snakes_ladders import main as app
 from snakes_ladders.controller.game_controller import GameController
-from snakes_ladders.engine import GameEngine
+from snakes_ladders.engine import GameEngine, Phase
 from snakes_ladders.engine.setup import PlayerConfig
 from snakes_ladders.ui.board_view import BoardView
 from snakes_ladders.ui.widgets import BACKGROUND, TEXT, TOKEN_COLOURS, _render_label
@@ -39,16 +39,21 @@ def test_fifty_rolls_are_presented_within_one_second(monkeypatch, player_count):
         if len(durations) == 50:
             started = None
             return [pygame.event.Event(pygame.QUIT)]
+        if started is not None:
+            return []
         started = perf_counter()
         if len(durations) % 2:
             return [pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(810, 585))]
         return [pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)]
 
     def present():
-        nonlocal previous_result
+        nonlocal previous_result, started
         flip()
         elapsed = perf_counter() - started if started is not None else None
         if elapsed is None:
+            return
+        assert elapsed <= 1, "Animation exceeded the roll-to-display deadline"
+        if controller.state.phase is Phase.ANIMATING:
             return
         assert controller.screen == "game"
         result = controller.last_result
@@ -71,6 +76,7 @@ def test_fifty_rolls_are_presented_within_one_second(monkeypatch, player_count):
         actual = surface.subsurface((950, 575, *expected.get_size()))
         assert pygame.image.tobytes(actual, "RGB") == pygame.image.tobytes(expected, "RGB")
         durations.append(elapsed)
+        started = None
 
     monkeypatch.setattr(pygame.event, "get", events)
     monkeypatch.setattr(pygame.display, "flip", present)

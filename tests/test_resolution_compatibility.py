@@ -82,6 +82,8 @@ def test_resized_application_mouse_flow_through_all_screens(size, monkeypatch):
 
     def events():
         nonlocal frame
+        if controller.screen == "game" and controller.state.phase.name in ("ANIMATING", "GAME_OVER"):
+            return []
         frame += 1
         if frame == 2:
             assert controller.screen == "game"

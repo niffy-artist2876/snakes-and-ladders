@@ -67,6 +67,7 @@ def test_indicator_tracks_turns_and_wraparound_for_all_player_counts(rendered_ga
         else:
             event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)
         screen.handle_event(event)
+        screen.update(1)
     assert_indicator(screen, rendered_game, configs[0].name, configs[0].colour, 1)
 
 

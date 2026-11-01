@@ -193,3 +193,50 @@ for visual inspection are written to pytest's temporary directory (use
 `--basetemp=/tmp/nfr09-validation` for a predictable location). The screens
 were visually inspected at all three sizes in headless SDL; native desktop
 window-manager behaviour remains a manual check on each supported OS.
+
+## Animation responsiveness (NFR-12)
+
+Rolls now animate the numbered token along the numbered squares, followed
+by any snake or ladder transition, using elapsed time rather than frame
+counts. A complete move lasts 250 ms, with a 60 FPS presentation target.
+The event loop continues processing resize and quit events; roll and save
+requests are ignored until movement completes. A winning move finishes on
+the board before the result screen opens. Overshoots do not animate.
+
+Launching `python -m snakes_ladders.main` logs the presented frame count,
+average FPS and minimum FPS for each measured move. Minimum FPS is derived
+from the longest interval between presented frames; animations with fewer
+than two samples are not reported as passing. Run
+`python -m pytest tests/test_animation.py::test_twenty_animated_moves_meet_thirty_fps -q -s`
+to log and verify at least 30 FPS over 20 real event-loop moves with four
+players. The NFR-01/NFR-07 tests now time each input through the final
+animated frame, retaining their one-second deadline. Cloud/headless results
+are not minimum-hardware certification: repeat the 20-move check on the
+SRS 2.4 hardware with a native display.
+
+During movement, the gameplay renderer caches the board/sidebar and
+stationary tokens. Subsequent frames restore only the moving token's old
+and new bounds, then paint its numbered sprite. Scene/state changes
+invalidate the cache; resize/exposure forces a full presentation. At the
+native 1280 x 720 size only the damaged areas are copied to the window;
+larger viewports retain proportional scaling. The strict 20-move 30 FPS
+check remains enabled in the ordinary CI suite, including coverage runs.
+
+Frame pacing uses monotonic high-resolution deadlines instead of SDL's
+millisecond delay timer. Render work is subtracted from the frame budget;
+the scheduler sleeps for most of the remainder and finishes at most the
+last millisecond against the high-resolution clock. Late frames do not
+sleep or substitute a nominal frame duration for elapsed time. This uses
+a small amount of extra CPU to avoid depending on SDL delay precision.
+Slow gameplay frames log separate event, update, drawing, presentation,
+display-flip and previous-wait times, plus the SDL driver, so platform CI
+failures identify the expensive stage. These diagnostics do not change
+measured frame rates or the strict 30 FPS acceptance assertion.
+
+Active token animations use the precise pacing path with no sleep calls:
+macOS background timer coalescing was observed stretching requested frame
+waits to 50–140 ms despite sub-millisecond drawing. Only the short movement
+interval uses a deadline spin; inactive screens keep the lower-CPU sleep
+path. This can occupy one CPU core during movement and deliberately trades
+that bounded CPU cost for avoiding coalesced sleep delays. Actual elapsed
+frame intervals are still measured and checked without adjustment.

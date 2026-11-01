@@ -106,5 +106,9 @@ def test_ui_roll_completes_the_move_so_the_game_stays_playable(game_screen):
     click, space = roll_inputs(screen)
     screen.handle_event(click)
     screen.handle_event(space)
+    assert [p.position for p in controller.state.players] == [3, 0]
+    screen.update(1)
+    screen.handle_event(space)
+    screen.update(1)
     assert [p.position for p in controller.state.players] == [3, 5]
     assert controller.state.phase is Phase.AWAITING_ROLL

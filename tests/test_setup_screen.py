@@ -107,6 +107,8 @@ def test_application_flow_through_new_game_and_exit(surface, monkeypatch):
 
     def events():
         nonlocal frame
+        if controller.screen == "game" and controller.state.phase.name in ("ANIMATING", "GAME_OVER"):
+            return []
         frame += 1
         if frame == 2:
             controller.state.players[0].position = 99
