@@ -97,6 +97,7 @@ def test_roll_updates_the_board_and_results_keep_final_tokens_visible(surface):
     start = game.board_view.token_center(0, 0)
     game.handle_event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=game.roll_button.center))
     assert controller.state.players[0].position == 38
+    game.update(1)
     game.draw(surface)
     assert surface.get_at(start)[:3] == BACKGROUND
     center = game.board_view.token_center(38, 0)
@@ -122,6 +123,7 @@ def test_token_position_render_updates_within_one_second_of_roll_display(surface
     # Ladder path: roll 1 from start lands on 1 and resolves to 38.
     start = time.perf_counter()
     game.handle_event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=game.roll_button.center))
+    game.update(1)
     game.draw(surface)
     elapsed = time.perf_counter() - start
     assert elapsed <= 1.0
@@ -134,6 +136,7 @@ def test_token_position_render_updates_within_one_second_of_roll_display(surface
     controller.state.players[0].position = 91
     start = time.perf_counter()
     game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE))
+    game.update(1)
     game.draw(surface)
     elapsed = time.perf_counter() - start
     assert elapsed <= 1.0

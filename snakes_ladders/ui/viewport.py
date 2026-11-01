@@ -31,10 +31,15 @@ def logical_event(event, rect):
     return pygame.event.Event(event.type, attributes)
 
 
-def present(canvas, window):
+def present(canvas, window, dirty=None):
     rect = viewport_rect(window.get_size())
-    window.fill(BACKGROUND)
     if rect.size == canvas.get_size():
-        window.blit(canvas, rect)
+        if dirty is None:
+            window.fill(BACKGROUND)
+            window.blit(canvas, rect)
+        else:
+            for area in dirty:
+                window.blit(canvas, area.move(rect.topleft), area)
     else:
+        window.fill(BACKGROUND)
         window.blit(pygame.transform.smoothscale(canvas, rect.size), rect)

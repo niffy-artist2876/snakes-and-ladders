@@ -87,6 +87,8 @@ def run_script(monkeypatch, controller_factory, steps):
 
     def events():
         nonlocal frame
+        if created and created[0].screen == "game" and created[0].state.phase in (Phase.ANIMATING, Phase.GAME_OVER):
+            return []
         if frame:
             steps[frame - 1][1](created[0])
         if frame == len(steps):
