@@ -3,6 +3,8 @@
 import pygame
 
 from snakes_ladders.controller.game_controller import GameController
+from snakes_ladders.ui.animation import TARGET_FPS
+from snakes_ladders.ui.frame_pacing import FramePacer
 from snakes_ladders.ui.game_screen import GameScreen
 from snakes_ladders.ui.result_screen import ResultScreen
 from snakes_ladders.ui.setup_screen import SetupScreen
@@ -31,7 +33,8 @@ def main():
             "game": GameScreen(controller),
             "result": ResultScreen(controller),
         }
-        clock = pygame.time.Clock()
+        pacer = FramePacer(pygame.time.Clock(), TARGET_FPS)
+        seconds = 0.0  # Duration of the previous frame; drives animation.
         while controller.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -47,10 +50,13 @@ def main():
                     screens[controller.screen].handle_event(event)
                     if previous_screen != "setup" and controller.screen == "setup":
                         screens["setup"] = make_setup()
-            screens[controller.screen].draw(canvas)
+            screen = screens[controller.screen]
+            if hasattr(screen, "update"):
+                screen.update(seconds)
+            screen.draw(canvas)
             present(canvas, surface)
             pygame.display.flip()
-            clock.tick(60)
+            seconds = pacer.wait(precise=getattr(screen, "animating", False))
     finally:
         pygame.quit()
 
