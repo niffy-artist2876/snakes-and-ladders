@@ -79,6 +79,9 @@ def test_result_screen_buttons_and_rendering(surface):
     screen = ResultScreen(controller)
     screen.draw(surface)
     screen.handle_event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=screen.new_game_button.center))
+    assert controller.pending_prompt == "restart"
+    screen.draw(surface)
+    screen.handle_event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=screen.dialog.confirm_button.center))
     assert controller.screen == "setup"
     controller = finished_controller()
     screen = ResultScreen(controller)
@@ -101,6 +104,7 @@ def test_application_flow_through_new_game_and_exit(surface, monkeypatch):
          pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(100, 640))],
         [pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)],
         [pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=app.ResultScreen(controller).new_game_button.center)],
+        [pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(500, 425))],
         [pygame.event.Event(pygame.QUIT)],
     ])
     frame = 0
@@ -113,6 +117,9 @@ def test_application_flow_through_new_game_and_exit(surface, monkeypatch):
         if frame == 3:
             assert controller.screen == "result"
         if frame == 4:
+            assert controller.pending_prompt == "restart"
+            assert controller.screen == "result"
+        if frame == 5:
             assert controller.screen == "setup"
             assert controller.state is None
         return next(batches)

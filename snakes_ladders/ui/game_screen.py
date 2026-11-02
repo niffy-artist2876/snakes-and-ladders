@@ -5,6 +5,7 @@ import pygame
 from snakes_ladders.engine import Phase
 from snakes_ladders.ui.animation import TokenAnimation
 from snakes_ladders.ui.board_view import BoardView
+from snakes_ladders.ui.session_dialog import SessionDialog
 from snakes_ladders.ui.widgets import BACKGROUND, TOKEN_COLOURS, button, label
 
 
@@ -13,10 +14,17 @@ class GameScreen:
         self.controller = controller
         self.board_view = BoardView()
         self.animation = None
+        self.animation_state = None
         self.roll_button = pygame.Rect(700, 560, 220, 50)
         self.save_button = pygame.Rect(700, 625, 140, 45)
+        self.restart_button = pygame.Rect(860, 625, 160, 45)
+        self.dialog = SessionDialog(controller)
 
     def handle_event(self, event):
+        if self.dialog.handle_event(event):
+            if self.controller.screen != "game":
+                self.animation = None
+            return
         clicked_roll = (
             event.type == pygame.MOUSEBUTTONDOWN
             and event.button == 1
@@ -34,6 +42,9 @@ class GameScreen:
                 self._start_animation(result)
         elif clicked_save:
             self.controller.on_save_requested()
+        elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
+              and self.restart_button.collidepoint(event.pos)):
+            self.controller.new_game_requested()
 
     @property
     def animating(self):
@@ -46,12 +57,14 @@ class GameScreen:
             self.controller.on_animation_done()
         else:
             self.animation = animation
+            self.animation_state = self.controller.state
 
     def update(self, seconds):
         """Advance the running animation by one frame that took `seconds`."""
         if self.animation is None:
             return
-        if self.controller.state is None or self.controller.state.phase is not Phase.ANIMATING:
+        if (self.controller.state is not self.animation_state
+                or self.controller.state.phase is not Phase.ANIMATING):
             self.animation = None  # The game changed under the animation (new game, load).
             return
         self.animation.update(seconds)
@@ -89,7 +102,9 @@ class GameScreen:
             label(surface, f"Last roll: {state.last_roll}", (950, 575))
 
         button(surface, self.save_button, "Save Game", state.phase is Phase.AWAITING_ROLL)
+        button(surface, self.restart_button, "Restart")
         if self.controller.status_message:
-            label(surface, self.controller.status_message, (860, 635), 22, (110, 230, 165))
+            label(surface, self.controller.status_message, (700, 685), 22, (110, 230, 165))
         elif self.controller.error_message:
-            label(surface, self.controller.error_message, (860, 635), 22, (255, 180, 145))
+            label(surface, self.controller.error_message, (700, 685), 22, (255, 180, 145))
+        self.dialog.draw(surface)

@@ -174,6 +174,9 @@ def test_smoke_finish_a_game_and_return_to_setup(monkeypatch):
     steps = [
         ([key(pygame.K_SPACE)], on_win),
         ([key(pygame.K_SPACE)], still_result),
-        ([click(NEW_GAME_BUTTON)], on_setup),
+        ([click(NEW_GAME_BUTTON)], lambda c: (
+            c.screen == "result" and c.pending_prompt == "restart"
+        ) or pytest.fail("Restart must wait for confirmation")),
+        ([click((500, 425))], on_setup),
     ]
     run_script(monkeypatch, factory, steps)

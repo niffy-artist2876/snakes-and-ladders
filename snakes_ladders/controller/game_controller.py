@@ -25,6 +25,7 @@ class GameController:
         self.last_result = None
         self.error_message = None
         self.status_message = None
+        self.pending_prompt = None
 
     def start_new_game(self, configs, extra_turn=False):
         configs = validate_setup(configs)
@@ -33,6 +34,7 @@ class GameController:
         self.last_result = None
         self.error_message = None
         self.status_message = None
+        self.pending_prompt = None
         self.screen = "game"
 
     def on_roll_requested(self):
@@ -96,16 +98,29 @@ class GameController:
         return self.save_manager.exists()
 
     def _is_awaiting_roll(self):
-        return self.screen == "game" and self.state is not None and self.state.phase is Phase.AWAITING_ROLL
+        return (
+            self.pending_prompt is None
+            and self.screen == "game"
+            and self.state is not None
+            and self.state.phase is Phase.AWAITING_ROLL
+        )
 
     def new_game_requested(self):
-        """Return to setup from results; the next Start creates fresh players."""
-        if self.screen == "result":
+        """Ask before discarding a running or completed game (FR-14)."""
+        if self.screen in ("game", "result") and self.pending_prompt is None:
+            self.pending_prompt = "restart"
+
+    def on_restart_confirmed(self):
+        if self.pending_prompt == "restart":
             self.state = None
             self.last_result = None
             self.error_message = None
             self.status_message = None
+            self.pending_prompt = None
             self.screen = "setup"
+
+    def cancel_prompt(self):
+        self.pending_prompt = None
 
     def exit_requested(self):
         if self.screen == "result":
