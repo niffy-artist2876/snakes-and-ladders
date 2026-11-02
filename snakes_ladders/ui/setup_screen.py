@@ -75,10 +75,10 @@ class SetupScreen:
     def draw(self, surface):
         surface.fill(BACKGROUND)
         label(surface, "Set up your players", (60, 45), 42)
-        label(surface, "Players:", (60, 125))
+        label(surface, "1. Players:", (60, 125))
         for count, rect in self.count_buttons:
             button(surface, rect, str(count), self.count == count)
-        label(surface, "Click a name to type. Click a colour to change it. Tab: next player.", (60, 170), 24)
+        label(surface, "2. Enter names (1-15 letters, digits or spaces). Click a colour to change it.", (60, 170), 24)
         for i in range(self.count):
             rect = self.name_rect(i)
             pygame.draw.rect(surface, (43, 53, 72), rect, border_radius=6)
@@ -93,17 +93,22 @@ class SetupScreen:
             colour_rect = self.colour_rect(i)
             pygame.draw.rect(surface, TOKEN_COLOURS[self.colours[i]], colour_rect, border_radius=6)
             label(surface, f"{i + 1}: {self.colours[i]}", (colour_rect.x + 12, colour_rect.y + 13), colour=(15, 20, 30))
+        label(surface, "Tab / Enter: next name. Backspace: edit. Names and colours must be unique.", (60, 515), 24)
         error = self.validation_error()
         if self.controller and self.controller.error_message:
             msg = self.controller.error_message
             msg_color = (255, 180, 145)
+        elif not any(self.names[:self.count]):
+            msg = "Enter a name for each player to enable Start Game."
+            msg_color = TEXT
         elif error:
             msg = error
             msg_color = (255, 180, 145)
         else:
-            msg = "Player details are valid."
+            msg = "Ready! Choose Start Game below."
             msg_color = (110, 230, 165)
         label(surface, msg, (60, 560), 25, msg_color)
+        label(surface, "3. Start Game, then click Roll Dice (or press Space) to take your turn.", (60, 595), 24)
         button(surface, self.start_button, "Start Game", not error and self.on_start is not None)
 
         can_resume = self.can_resume() if callable(self.can_resume) else (self.on_resume is not None)

@@ -27,7 +27,23 @@ to the next player.
 When a player reaches square 100, the Result screen announces the winner
 and lists all players by descending position alongside the final board.
 Ties retain setup order.
-New Game returns to a blank setup screen; Exit closes the application.
+Restart during a game and New Game on the Result screen ask for confirmation,
+then return to a blank setup screen. Cancel keeps the current session.
+Exit (including closing the window) offers Save & Exit, Exit without saving,
+or Cancel while a game is in progress. Save becomes available once a moving
+token stops. A failed save keeps the game open so it can be retried.
+
+## First-time use (NFR-02)
+
+The setup screen shows three steps, name/colour rules, keyboard hints and a
+readiness message. Gameplay shows the goal, the current player, how to roll,
+and when a move is still in progress. `tests/test_usability.py` drives setup
+and a complete first turn through the real application using both mouse and
+Space at each supported acceptance resolution.
+
+The separate five-participant acceptance study has **not been run**. Use
+[the study procedure and results sheet](docs/USABILITY_STUDY.md) to record
+whether at least four of five first-time users succeed unaided within two minutes.
 
 ## Save and resume integrity (NFR-08)
 

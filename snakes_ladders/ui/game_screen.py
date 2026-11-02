@@ -80,6 +80,7 @@ class GameScreen:
         surface.fill(BACKGROUND)
         state = self.controller.state
         label(surface, "Snakes and Ladders", (40, 15), 38)
+        label(surface, "Reach 100 exactly. Ladders go up; snakes go down.", (700, 45), 22)
         centers = None
         if self.animation is not None:
             centers = {self.animation.player_index: self.animation.center}
@@ -101,6 +102,16 @@ class GameScreen:
             label(surface, f"Turn: {current_player.name}", (755, 80), 32)
         label(surface, "Snakes: red curves", (700, 465), 25)
         label(surface, "Ladders: brown rails", (700, 495), 25)
+        if state.phase is Phase.ANIMATING:
+            hint = "Moving... your next roll is ready when the token stops."
+        elif state.phase is Phase.AWAITING_ROLL:
+            if self.controller.last_result is not None and self.controller.last_result.extra_roll:
+                hint = "You rolled a 6! Roll again for your extra turn."
+            else:
+                hint = "Your turn: click Roll Dice or press Space."
+        else:
+            hint = "Game finished. Choose New Game on the results screen."
+        label(surface, hint, (700, 530), 22)
         button(surface, self.roll_button, "Roll Dice (Space)", state.phase is Phase.AWAITING_ROLL)
         if state.last_roll is not None:
             label(surface, f"Last roll: {state.last_roll}", (950, 575))

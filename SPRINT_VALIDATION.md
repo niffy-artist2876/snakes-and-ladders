@@ -57,3 +57,18 @@ Branch: `sprint/nfr-11-recoverability`
   Leftover temporary files are ignored and the following successful save works.
 - Ten additional failures injected between writing and replacement preserve the old save.
 - Full suite: **441 passed**. Engine coverage: **99%**.
+
+## 5. NFR-02: Usability (#23)
+
+Branch: `sprint/nfr-02-usability`
+
+- Setup shows numbered steps, name/colour rules, keyboard editing hints and readiness.
+- Gameplay explains the goal, roll controls, movement delay and extra-roll availability.
+- Automated checks set up two players and complete a real animated first turn using
+  mouse and Space at 1280x720, 1366x768 and 1920x1080. A duplicate-name correction
+  flow is checked without bypassing user input. The setup and game screens were
+  also visually inspected at the reference resolution.
+- Full suite: **448 passed**. Engine coverage: **99%**.
+- **Human acceptance remains pending:** no five-participant study results are available.
+  `docs/USABILITY_STUDY.md` contains the procedure and unfilled results sheet.
+  Automated UI checks do not certify the four-of-five / two-minute acceptance threshold.
