@@ -18,6 +18,7 @@ class GameScreen:
         self.roll_button = pygame.Rect(700, 560, 220, 50)
         self.save_button = pygame.Rect(700, 625, 140, 45)
         self.restart_button = pygame.Rect(860, 625, 160, 45)
+        self.exit_button = pygame.Rect(1040, 625, 140, 45)
         self.dialog = SessionDialog(controller)
 
     def handle_event(self, event):
@@ -45,6 +46,9 @@ class GameScreen:
         elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
               and self.restart_button.collidepoint(event.pos)):
             self.controller.new_game_requested()
+        elif (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
+              and self.exit_button.collidepoint(event.pos)):
+            self.controller.exit_requested()
 
     @property
     def animating(self):
@@ -103,6 +107,7 @@ class GameScreen:
 
         button(surface, self.save_button, "Save Game", state.phase is Phase.AWAITING_ROLL)
         button(surface, self.restart_button, "Restart")
+        button(surface, self.exit_button, "Exit")
         if self.controller.status_message:
             label(surface, self.controller.status_message, (700, 685), 22, (110, 230, 165))
         elif self.controller.error_message:

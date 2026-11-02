@@ -59,6 +59,9 @@ class GameController:
         if not self._is_awaiting_roll():
             logger.debug("Save requested while not awaiting roll (ignored)")
             return False
+        return self._save_game()
+
+    def _save_game(self):
         try:
             self.save_manager.save(self.state)
             self.status_message = "Game saved."
@@ -123,5 +126,30 @@ class GameController:
         self.pending_prompt = None
 
     def exit_requested(self):
-        if self.screen == "result":
+        """Window close and Exit buttons share the same save-aware flow (FR-18)."""
+        if self.screen == "game" and self.state is not None and self.state.phase is not Phase.GAME_OVER:
+            self.pending_prompt = "exit"
+        else:
+            self.pending_prompt = None
+            self.running = False
+
+    def can_save_before_exit(self):
+        return (
+            self.screen == "game"
+            and self.state is not None
+            and self.state.phase is Phase.AWAITING_ROLL
+        )
+
+    def save_and_exit(self):
+        if self.pending_prompt != "exit" or not self.can_save_before_exit():
+            return False
+        if not self._save_game():
+            return False  # Keep the prompt and session usable when saving fails.
+        self.pending_prompt = None
+        self.running = False
+        return True
+
+    def exit_without_saving(self):
+        if self.pending_prompt == "exit":
+            self.pending_prompt = None
             self.running = False

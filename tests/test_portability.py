@@ -91,7 +91,7 @@ def run_script(monkeypatch, controller_factory, steps):
             steps[frame - 1][1](created[0])
         if frame == len(steps):
             frame += 1
-            return [pygame.event.Event(pygame.QUIT)]
+            return [pygame.event.Event(pygame.QUIT), click((600, 435))]
         batch = steps[frame][0]
         frame += 1
         return batch

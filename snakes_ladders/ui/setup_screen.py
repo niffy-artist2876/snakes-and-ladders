@@ -15,6 +15,7 @@ class SetupScreen:
         self.controller = controller
         self.start_button = pygame.Rect(60, 620, 180, 50)
         self.resume_button = pygame.Rect(260, 620, 180, 50)
+        self.exit_button = pygame.Rect(460, 620, 180, 50)
         self.count = 2
         self.names = ["", "", "", ""]
         self.colours = list(COLOURS)
@@ -41,6 +42,9 @@ class SetupScreen:
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.exit_button.collidepoint(event.pos) and self.controller is not None:
+                self.controller.exit_requested()
+                return
             if self.start_button.collidepoint(event.pos) and not self.validation_error():
                 if self.on_start is not None:
                     self.on_start(self.configs())
@@ -105,3 +109,5 @@ class SetupScreen:
         can_resume = self.can_resume() if callable(self.can_resume) else (self.on_resume is not None)
         if can_resume or self.on_resume is not None:
             button(surface, self.resume_button, "Resume Game", can_resume)
+        if self.controller is not None:
+            button(surface, self.exit_button, "Exit")

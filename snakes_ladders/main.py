@@ -38,7 +38,7 @@ def main():
         while controller.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    controller.running = False
+                    controller.exit_requested()
                 elif event.type == pygame.VIDEORESIZE:
                     size = (max(LOGICAL_SIZE[0], event.w), max(LOGICAL_SIZE[1], event.h))
                     surface = pygame.display.set_mode(size, pygame.RESIZABLE)

@@ -208,7 +208,8 @@ def play_moves(monkeypatch, caplog, count):
         if controller.state.phase is not Phase.AWAITING_ROLL:
             return []
         if moves == count:
-            return [pygame.event.Event(pygame.QUIT)]
+            return [pygame.event.Event(pygame.QUIT),
+                    pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(600, 435))]
         moves += 1
         return [SPACE]
 
