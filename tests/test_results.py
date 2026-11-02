@@ -51,6 +51,9 @@ def test_new_game_clears_finished_state():
     controller = finished_controller()
     old_state = controller.state
     controller.new_game_requested()
+    assert controller.screen == "result"
+    assert controller.pending_prompt == "restart"
+    controller.on_restart_confirmed()
     assert controller.screen == "setup"
     assert controller.state is None
     assert controller.last_result is None

@@ -38,7 +38,8 @@ def test_fifty_rolls_are_presented_within_one_second(monkeypatch, player_count):
         nonlocal started
         if len(durations) == 50:
             started = None
-            return [pygame.event.Event(pygame.QUIT)]
+            return [pygame.event.Event(pygame.QUIT),
+                    pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(600, 435))]
         started = perf_counter()
         if len(durations) % 2:
             return [pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(810, 585))]

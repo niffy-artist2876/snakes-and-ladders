@@ -25,6 +25,7 @@ class GameController:
         self.last_result = None
         self.error_message = None
         self.status_message = None
+        self.pending_prompt = None
 
     def start_new_game(self, configs, extra_turn=False):
         configs = validate_setup(configs)
@@ -33,6 +34,7 @@ class GameController:
         self.last_result = None
         self.error_message = None
         self.status_message = None
+        self.pending_prompt = None
         self.screen = "game"
 
     def on_roll_requested(self):
@@ -57,6 +59,10 @@ class GameController:
         if not self._is_awaiting_roll():
             logger.debug("Save requested while not awaiting roll (ignored)")
             return False
+        return self._save_game()
+
+    def _save_game(self):
+        self.status_message = None
         try:
             self.save_manager.save(self.state)
             self.status_message = "Game saved."
@@ -74,6 +80,7 @@ class GameController:
 
     def on_resume_requested(self):
         """Resume the most recent saved game (FR-15, UC10, SDD 3.6.1)."""
+        self.status_message = None
         try:
             saved_state = self.save_manager.load()
             self.state = self.engine.from_saved(saved_state)
@@ -95,18 +102,65 @@ class GameController:
         """Check whether a save file exists for UI display (UI-4)."""
         return self.save_manager.exists()
 
+    def recover_from_error(self):
+        """Discard potentially partial live state after an unexpected failure (NFR-10)."""
+        self.state = None
+        self.last_result = None
+        self.pending_prompt = None
+        self.status_message = None
+        self.error_message = "An unexpected error occurred. Returning to the start screen."
+        self.screen = "setup"
+
     def _is_awaiting_roll(self):
-        return self.screen == "game" and self.state is not None and self.state.phase is Phase.AWAITING_ROLL
+        return (
+            self.pending_prompt is None
+            and self.screen == "game"
+            and self.state is not None
+            and self.state.phase is Phase.AWAITING_ROLL
+        )
 
     def new_game_requested(self):
-        """Return to setup from results; the next Start creates fresh players."""
-        if self.screen == "result":
+        """Ask before discarding a running or completed game (FR-14)."""
+        if self.screen in ("game", "result") and self.pending_prompt is None:
+            self.pending_prompt = "restart"
+
+    def on_restart_confirmed(self):
+        if self.pending_prompt == "restart":
             self.state = None
             self.last_result = None
             self.error_message = None
             self.status_message = None
+            self.pending_prompt = None
             self.screen = "setup"
 
+    def cancel_prompt(self):
+        self.pending_prompt = None
+
     def exit_requested(self):
-        if self.screen == "result":
+        """Window close and Exit buttons share the same save-aware flow (FR-18)."""
+        if self.screen == "game" and self.state is not None and self.state.phase is not Phase.GAME_OVER:
+            self.pending_prompt = "exit"
+        else:
+            self.pending_prompt = None
+            self.running = False
+
+    def can_save_before_exit(self):
+        return (
+            self.screen == "game"
+            and self.state is not None
+            and self.state.phase is Phase.AWAITING_ROLL
+        )
+
+    def save_and_exit(self):
+        if self.pending_prompt != "exit" or not self.can_save_before_exit():
+            return False
+        if not self._save_game():
+            return False  # Keep the prompt and session usable when saving fails.
+        self.pending_prompt = None
+        self.running = False
+        return True
+
+    def exit_without_saving(self):
+        if self.pending_prompt == "exit":
+            self.pending_prompt = None
             self.running = False

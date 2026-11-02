@@ -76,7 +76,7 @@ def test_resized_application_mouse_flow_through_all_screens(size, monkeypatch):
          pygame.event.Event(pygame.KEYDOWN, key=pygame.K_TAB),
          pygame.event.Event(pygame.TEXTINPUT, text="Alice"), click((150, 645))],
         [click((810, 585))], [click((810, 585))],
-        [click((790, 605))], [pygame.event.Event(pygame.QUIT)],
+        [click((790, 605))], [click((500, 425))], [pygame.event.Event(pygame.QUIT)],
     ])
     frame = 0
 
@@ -91,12 +91,14 @@ def test_resized_application_mouse_flow_through_all_screens(size, monkeypatch):
         if frame == 4:
             assert controller.screen == "result"
         if frame == 5:
+            assert controller.screen == "result" and controller.pending_prompt == "restart"
+        if frame == 6:
             assert controller.screen == "setup" and controller.state is None
         return next(batches)
 
     monkeypatch.setattr(pygame.event, "get", events)
     app.main()
-    assert frame == 5
+    assert frame == 6
 
 
 def test_letterbox_clicks_are_ignored_and_pointer_motion_is_scaled():

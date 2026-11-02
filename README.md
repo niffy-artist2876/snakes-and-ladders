@@ -27,7 +27,23 @@ to the next player.
 When a player reaches square 100, the Result screen announces the winner
 and lists all players by descending position alongside the final board.
 Ties retain setup order.
-New Game returns to a blank setup screen; Exit closes the application.
+Restart during a game and New Game on the Result screen ask for confirmation,
+then return to a blank setup screen. Cancel keeps the current session.
+Exit (including closing the window) offers Save & Exit, Exit without saving,
+or Cancel while a game is in progress. Save becomes available once a moving
+token stops. A failed save keeps the game open so it can be retried.
+
+## First-time use (NFR-02)
+
+The setup screen shows three steps, name/colour rules, keyboard hints and a
+readiness message. Gameplay shows the goal, the current player, how to roll,
+and when a move is still in progress. `tests/test_usability.py` drives setup
+and a complete first turn through the real application using both mouse and
+Space at each supported acceptance resolution.
+
+The separate five-participant acceptance study has **not been run**. Use
+[the study procedure and results sheet](docs/USABILITY_STUDY.md) to record
+whether at least four of five first-time users succeed unaided within two minutes.
 
 ## Save and resume integrity (NFR-08)
 
@@ -159,6 +175,18 @@ Run `python -m pytest tests/test_roll_performance.py -q -s` to print both
 timing reports. No relative speed threshold replaces the one-second limit.
 Repeat this check on the SRS 2.4 minimum hardware for hardware acceptance;
 headless cloud results validate the workflow on the current machine only.
+
+## Save interruption recovery (NFR-11)
+
+Saves are written to a temporary file in the save directory, flushed and synced,
+then committed with `os.replace`. Closing the application before that replacement
+preserves the previous valid save. Resume ignores leftover temporary files; the
+next successful save replaces them. After replacement, the new save is committed.
+
+`tests/test_recoverability.py` abruptly terminates ten child processes during
+partial writes, after flushing, and just before replacement. Each run verifies
+that the old save is byte-identical, resumes correctly, and can be saved again.
+It also injects ten write failures immediately before replacement.
 
 ## Resource efficiency (NFR-14)
 
