@@ -35,6 +35,10 @@ class GameScreen:
         elif clicked_save:
             self.controller.on_save_requested()
 
+    @property
+    def animating(self):
+        return self.animation is not None
+
     def _start_animation(self, result):
         animation = TokenAnimation(self.board_view, result)
         if result.winner_index is not None or animation.finished:

@@ -10,6 +10,7 @@ about whether the game renders at 30 FPS.
 import logging
 import os
 import re
+import time
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -23,11 +24,14 @@ from snakes_ladders.engine import Event, GameEngine, Phase, TurnResult
 from snakes_ladders.engine.setup import PlayerConfig
 from snakes_ladders.ui.animation import DURATION, MIN_FPS, TokenAnimation
 from snakes_ladders.ui.board_view import BoardView
+from snakes_ladders.ui.frame_pacing import FramePacer
 from snakes_ladders.ui.game_screen import GameScreen
 from snakes_ladders.ui.widgets import TOKEN_COLOURS
 from tests.engine.test_scripted_rng import ScriptedRng
 
 pytestmark = pytest.mark.real_animation  # These tests need the real timing.
+
+RealClock = pygame.time.Clock
 
 
 @pytest.fixture
@@ -124,6 +128,7 @@ def test_roll_starts_the_animation_and_blocks_input_until_it_ends(board_view):
     screen.handle_event(SPACE)
     assert controller.state.phase is Phase.ANIMATING
     assert screen.animation is not None
+    assert screen.animating is True
     result = controller.last_result
     screen.handle_event(SPACE)
     assert controller.last_result is result  # The second roll was ignored.
@@ -132,6 +137,7 @@ def test_roll_starts_the_animation_and_blocks_input_until_it_ends(board_view):
     assert controller.state.phase is Phase.ANIMATING
     screen.update(DURATION)
     assert screen.animation is None
+    assert screen.animating is False
     assert controller.state.phase is Phase.AWAITING_ROLL
     screen.handle_event(SPACE)
     assert controller.last_result is not result  # Allowed again.
@@ -172,9 +178,22 @@ def test_animation_is_dropped_if_the_game_changes_under_it(board_view):
     assert screen.animation is None
 
 
-def test_twenty_moves_in_the_real_loop_render_at_30_fps_or_better(monkeypatch, caplog):
-    # TC-N12-1: frame rate logged during 20 moves.
-    controller = GameController(GameEngine(rng=ScriptedRng([1] * 20)))
+class OvershootingClock:
+    """The real clock, but every sleep overshoots by 35 ms. Busy or background macOS
+    machines stretch sleeps like this, and it cut a CI run to about 20 FPS."""
+
+    def __init__(self):
+        self._clock = RealClock()
+
+    def tick(self, fps=0):
+        milliseconds = self._clock.tick(fps)
+        time.sleep(0.035)
+        return milliseconds + 35
+
+
+def play_moves(monkeypatch, caplog, count):
+    """Play `count` moves through the real application loop; return (frames, seconds)."""
+    controller = GameController(GameEngine(rng=ScriptedRng([1] * count)))
     controller.start_new_game([PlayerConfig(f"P{i}", c) for i, c in
                                enumerate(("blue", "orange", "green", "magenta"))])
     monkeypatch.setattr(app, "GameController", lambda: controller)
@@ -188,7 +207,7 @@ def test_twenty_moves_in_the_real_loop_render_at_30_fps_or_better(monkeypatch, c
         assert frames < 1000, "The animation never finished"
         if controller.state.phase is not Phase.AWAITING_ROLL:
             return []
-        if moves == 20:
+        if moves == count:
             return [pygame.event.Event(pygame.QUIT)]
         moves += 1
         return [SPACE]
@@ -197,7 +216,7 @@ def test_twenty_moves_in_the_real_loop_render_at_30_fps_or_better(monkeypatch, c
     app.main()
 
     records = [r.getMessage() for r in caplog.records if r.name == "snakes_ladders.animation"]
-    assert len(records) == moves == 20
+    assert len(records) == moves == count
     total_frames = total_seconds = 0
     for record in records:
         print(record)
@@ -207,6 +226,55 @@ def test_twenty_moves_in_the_real_loop_render_at_30_fps_or_better(monkeypatch, c
         assert seconds < 1.0  # FR-13: the token arrives within a second.
         total_frames += move_frames
         total_seconds += seconds
-    average_fps = total_frames / total_seconds
-    print(f"20 moves: {total_frames} frames in {total_seconds:.2f} s = {average_fps:.1f} FPS")
-    assert average_fps >= MIN_FPS, f"{average_fps:.1f} FPS over 20 moves"
+    print(f"{count} moves: {total_frames} frames in {total_seconds:.2f} s = "
+          f"{total_frames / total_seconds:.1f} FPS")
+    return total_frames, total_seconds
+
+
+def test_twenty_moves_in_the_real_loop_render_at_30_fps_or_better(monkeypatch, caplog):
+    # TC-N12-1: frame rate logged during 20 moves.
+    total_frames, total_seconds = play_moves(monkeypatch, caplog, 20)
+    assert total_frames / total_seconds >= MIN_FPS, f"{total_frames / total_seconds:.1f} FPS over 20 moves"
+
+
+def test_frame_rate_holds_when_the_os_sleep_overshoots(monkeypatch, caplog):
+    # The macOS CI failure: sleeps stretched to ~50 ms gave about 20 FPS. A moving token
+    # must not depend on the OS sleep, so the rate must still be 30 FPS or better.
+    monkeypatch.setattr(pygame.time, "Clock", OvershootingClock)
+    total_frames, total_seconds = play_moves(monkeypatch, caplog, 6)
+    assert total_frames / total_seconds >= MIN_FPS, f"{total_frames / total_seconds:.1f} FPS"
+
+
+class FakeClock:
+    def __init__(self):
+        self.ticks = []
+
+    def tick(self, fps):
+        self.ticks.append(fps)
+        return 0
+
+
+class FakeTimer:
+    """Advances 1 ms every time it is read, so spinning loops end without real waiting."""
+
+    def __init__(self):
+        self.now = 0.0
+
+    def __call__(self):
+        self.now += 0.001
+        return self.now
+
+
+def test_pacer_spins_and_never_sleeps_while_a_token_moves():
+    clock = FakeClock()
+    pacer = FramePacer(clock, 60, FakeTimer())
+    seconds = pacer.wait(precise=True)
+    assert clock.ticks == []  # No sleep that the OS could stretch.
+    assert 1 / 60 <= seconds < 1 / 60 + 0.003  # Held to the frame budget, no more.
+
+
+def test_pacer_sleeps_on_idle_screens_to_save_cpu():
+    clock = FakeClock()
+    pacer = FramePacer(clock, 60, FakeTimer())
+    pacer.wait(precise=False)
+    assert clock.ticks == [60]
