@@ -20,6 +20,7 @@
 | Version | Date       | Description                             | Author(s) |
 | ------- | ---------- | --------------------------------------- | --------- |
 | 1.0     | 29-09-2026 | Initial architecture and design         | Team      |
+| 1.1     | 02-11-2026 | Added section 6, as-built notes         | Team      |
 
 ---
 
@@ -680,3 +681,36 @@ UC numbers are given only where the SRS states them (UC3 to UC8, UC10, UC13); th
 | D-3 | Saving is allowed only in `AWAITING_ROLL` (between rolls, including between extra rolls). **Note:** FR-15 says "between turns", and the SRS defines a turn as including any extra rolls. This design is a superset (it also allows saving mid-turn, which is needed so the FR-18 exit prompt can always offer Save). If the SRS owner prefers the strict reading, disable Save while an extra roll is pending and drop `extra_rolls_used` from the save file | FR-15, FR-17, FR-18 |
 | D-4 | A save with a player on square 100 is rejected | A finished game has no valid resume state |
 | D-5 | Names are compared case-insensitively for uniqueness | Avoids "Sam" and "sam" confusion in standings |
+
+---
+
+## 6. As-built notes
+
+Version 1.1 records how the implementation differs from the design above. The full list is in `docs/DEVIATIONS.md`.
+
+### 6.1 Components as built
+
+| SDD component | As built |
+| --- | --- |
+| C1 `ScreenManager` | A `screens` dictionary in `main.py`, indexed by `GameController.screen` |
+| C2 `SetupScreen` | `ui/setup_screen.py`. It also holds Resume and Exit |
+| C3 `GameScreen` | `ui/game_screen.py` |
+| C4 `ResultScreen` | `ui/result_screen.py` |
+| C5 `BoardRenderer` | `ui/board_view.py` (`BoardView`) |
+| C6 `InputHandler` | The `handle_event` method of each screen. `ui/viewport.py` maps pointer positions when the window is resized |
+| C7 `AnimationController` | `ui/animation.py` (`TokenAnimation`), advanced by `GameScreen.update`. `ui/frame_pacing.py` (`FramePacer`) holds the frame rate |
+| C8 `GameController` | `controller/game_controller.py` |
+| C9 `InputValidator` | `validate_name` and `validate_setup` in `engine/setup.py`, re-exported by `controller/input_validator.py` |
+| C10 to C13 | `engine/game_engine.py`, `board.py`, `turn_manager.py` and `dice.py`, as designed |
+| C14 to C16 | `persistence/save_manager.py`, `validator.py` and `checksum.py`, plus `exceptions.py` |
+
+Three modules were added that the design does not list: `ui/session_dialog.py` (the restart and exit prompts, FR-14 and FR-18), `ui/viewport.py` (a resizable window, NFR-09) and `ui/widgets.py` (shared text and button drawing).
+
+### 6.2 Behaviour that differs from the design
+
+- There is no separate Start screen. Resume and Exit are on the setup screen (3.1).
+- A winning move is not animated. The controller shows the result screen on the winning roll (3.1, SD-1).
+- While a token moves, the loop spins to hold 60 FPS instead of sleeping, because sleeps ran long on macOS CI runners (3.7).
+- Tests are in one `tests/` folder plus `tests/engine/`, not the four folders in 2.5.
+
+Decisions D-1 and D-3 are implemented as written.

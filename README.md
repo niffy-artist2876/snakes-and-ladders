@@ -233,3 +233,28 @@ average over all 20 to be at least 30 FPS. The average is used deliberately: a
 single stalled frame on a shared CI machine does not show the game renders
 below 30 FPS. Cloud timings do not certify the SRS 2.4 minimum hardware; repeat
 `python -m pytest tests/test_token_animation.py -q -s` there.
+
+## Reliability (NFR-03)
+
+`tests/test_reliability.py` plays 100 seeded full games through the controller, with two to four players and the extra-turn rule on and off. After every move it checks the rules: positions stay between 0 and 100, turns pass in order, the extra-roll count is right, at most one player wins, and nobody rests on a snake head or a ladder base. Each game is capped at 5,000 rolls, and a failure message names the seed so the game can be replayed.
+
+## Maintainability (NFR-06)
+
+The rules live in `snakes_ladders/engine/`, which never imports Pygame. `tests/test_no_pygame.py` scans every engine file and fails if one does. CI fails the build when statement coverage of `engine/` drops below 80%. It was about 99% on 2 November 2026. To check it locally:
+
+```sh
+python -m coverage run -m pytest
+python -m coverage report --include="snakes_ladders/engine/*"
+```
+
+## Error handling (NFR-10)
+
+Invalid names and colours cannot start a game. A missing, empty or corrupted save file shows a message and leaves the screen usable, and read or write faults in the save folder are reported without ending the session. If something unexpected fails in the main loop, the traceback goes to `snl.log` in the save folder. The game then returns to the setup screen with "An unexpected error occurred. Returning to the start screen." and a new game can be started. `tests/test_error_handling.py` injects each of these faults.
+
+## Randomness quality (NFR-15)
+
+Dice use `secrets.SystemRandom`. `tests/test_randomness.py` rolls 60,000 times and runs a chi-square test (5 degrees of freedom, 5% level, limit 11.07), then repeats it on 30,000 pairs of rolls (35 degrees of freedom, limit 49.80). A correct generator fails a 5% test about one run in twenty, so a failing sample is redrawn and the test fails only after three failures in a row. Tests with a loaded die, a die that never rolls a six and a repeating sequence confirm that the checks can fail. A source scan confirms that no seeded or alternative generator is used outside the tests.
+
+## Known deviations
+
+Differences from the SRS, SDD and Test Plan, and the evidence still to collect, are listed in [docs/DEVIATIONS.md](docs/DEVIATIONS.md).
