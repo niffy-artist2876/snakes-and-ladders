@@ -104,7 +104,13 @@ class SaveManager:
             return False  # Unreadable metadata must not break setup rendering.
 
     def save(self, state: GameState) -> None:
-        """Serialise, checksum and atomically write game state (SDD 3.3 SD-3, NFR-11)."""
+        """Serialise, checksum and atomically write game state (SDD 3.3 SD-3, NFR-11).
+
+        The temporary file shares the destination directory. Flush and fsync it
+        before os.replace, the commit point: an interruption before that point
+        leaves the previous save intact. A later save overwrites any stale temp
+        file, and load() only ever reads the committed save.
+        """
         state_dict = {
             "players": [
                 {"name": p.name, "colour": p.colour, "position": p.position}

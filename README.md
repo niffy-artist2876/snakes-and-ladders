@@ -160,6 +160,18 @@ timing reports. No relative speed threshold replaces the one-second limit.
 Repeat this check on the SRS 2.4 minimum hardware for hardware acceptance;
 headless cloud results validate the workflow on the current machine only.
 
+## Save interruption recovery (NFR-11)
+
+Saves are written to a temporary file in the save directory, flushed and synced,
+then committed with `os.replace`. Closing the application before that replacement
+preserves the previous valid save. Resume ignores leftover temporary files; the
+next successful save replaces them. After replacement, the new save is committed.
+
+`tests/test_recoverability.py` abruptly terminates ten child processes during
+partial writes, after flushing, and just before replacement. Each run verifies
+that the old save is byte-identical, resumes correctly, and can be saved again.
+It also injects ten write failures immediately before replacement.
+
 ## Resource efficiency (NFR-14)
 
 Save files are limited to 10 KiB (10,240 bytes) before any temporary file is

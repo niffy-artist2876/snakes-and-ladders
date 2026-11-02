@@ -44,3 +44,16 @@ Branch: `sprint/nfr-10-error-handling`
 - Fault injection covers engine calls, event polling, updates, drawing, and display flips.
   Each recovery test also starts a new game through the real UI loop.
 - Full suite: **430 passed**. Engine coverage: **99%**.
+
+## 4. NFR-11: Recoverability (#30)
+
+Branch: `sprint/nfr-11-recoverability`
+
+- The existing save implementation already flushes/fsyncs the temporary file and commits
+  atomically with `os.replace`; this branch documents the commit boundary and verifies it.
+- Ten child saving processes are killed at partial-write, after-flush, and before-replace
+  barriers. No graceful exception handler runs in those child processes.
+- Every previous save remains byte-identical and resumes through a fresh controller.
+  Leftover temporary files are ignored and the following successful save works.
+- Ten additional failures injected between writing and replacement preserve the old save.
+- Full suite: **441 passed**. Engine coverage: **99%**.
