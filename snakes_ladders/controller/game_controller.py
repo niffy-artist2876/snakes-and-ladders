@@ -62,6 +62,7 @@ class GameController:
         return self._save_game()
 
     def _save_game(self):
+        self.status_message = None
         try:
             self.save_manager.save(self.state)
             self.status_message = "Game saved."
@@ -79,6 +80,7 @@ class GameController:
 
     def on_resume_requested(self):
         """Resume the most recent saved game (FR-15, UC10, SDD 3.6.1)."""
+        self.status_message = None
         try:
             saved_state = self.save_manager.load()
             self.state = self.engine.from_saved(saved_state)
@@ -99,6 +101,15 @@ class GameController:
     def can_resume(self):
         """Check whether a save file exists for UI display (UI-4)."""
         return self.save_manager.exists()
+
+    def recover_from_error(self):
+        """Discard potentially partial live state after an unexpected failure (NFR-10)."""
+        self.state = None
+        self.last_result = None
+        self.pending_prompt = None
+        self.status_message = None
+        self.error_message = "An unexpected error occurred. Returning to the start screen."
+        self.screen = "setup"
 
     def _is_awaiting_roll(self):
         return (

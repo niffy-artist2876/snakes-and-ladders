@@ -31,3 +31,16 @@ Branch: `sprint/fr-18-exit-game`
 - Setup and results exit immediately, with no active-game prompt.
 - Existing real-loop tests now explicitly choose discard when closing an active game.
 - Full suite: **407 passed**. Engine coverage: **99%**.
+
+## 3. NFR-10: Error Handling (#29)
+
+Branch: `sprint/nfr-10-error-handling`
+
+- The application loop logs unexpected exceptions with tracebacks to `snl.log`, clears
+  potentially partial live state, and rebuilds a usable setup screen with a generic message.
+- Save metadata/read permission errors are contained; missing, empty, malformed, non-UTF-8,
+  and deeply nested saves are rejected without replacing the live session.
+- Failed writes clear stale success messages and preserve the previous save.
+- Fault injection covers engine calls, event polling, updates, drawing, and display flips.
+  Each recovery test also starts a new game through the real UI loop.
+- Full suite: **430 passed**. Engine coverage: **99%**.
