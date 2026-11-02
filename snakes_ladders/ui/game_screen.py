@@ -3,6 +3,7 @@
 import pygame
 
 from snakes_ladders.engine import Phase
+from snakes_ladders.ui.animation import TokenAnimation
 from snakes_ladders.ui.board_view import BoardView
 from snakes_ladders.ui.widgets import BACKGROUND, TOKEN_COLOURS, button, label
 
@@ -11,6 +12,7 @@ class GameScreen:
     def __init__(self, controller):
         self.controller = controller
         self.board_view = BoardView()
+        self.animation = None
         self.roll_button = pygame.Rect(700, 560, 220, 50)
         self.save_button = pygame.Rect(700, 625, 140, 45)
 
@@ -27,17 +29,41 @@ class GameScreen:
             and self.save_button.collidepoint(event.pos)
         )
         if clicked_roll or pressed_space:
-            if self.controller.on_roll_requested() is not None:
-                # No animation yet: finish the move at once. Replace when FR-13's animation lands.
-                self.controller.on_animation_done()
+            result = self.controller.on_roll_requested()
+            if result is not None:
+                self._start_animation(result)
         elif clicked_save:
             self.controller.on_save_requested()
+
+    def _start_animation(self, result):
+        animation = TokenAnimation(self.board_view, result)
+        if result.winner_index is not None or animation.finished:
+            # A winning move goes straight to the results; an overshoot has nothing to move.
+            self.controller.on_animation_done()
+        else:
+            self.animation = animation
+
+    def update(self, seconds):
+        """Advance the running animation by one frame that took `seconds`."""
+        if self.animation is None:
+            return
+        if self.controller.state is None or self.controller.state.phase is not Phase.ANIMATING:
+            self.animation = None  # The game changed under the animation (new game, load).
+            return
+        self.animation.update(seconds)
+        if self.animation.finished:
+            self.animation = None
+            self.controller.on_animation_done()
 
     def draw(self, surface):
         surface.fill(BACKGROUND)
         state = self.controller.state
         label(surface, "Snakes and Ladders", (40, 15), 38)
-        self.board_view.draw(surface, state.players)
+        centers = None
+        if self.animation is not None:
+            centers = {self.animation.player_index: self.animation.center}
+        self.board_view.draw(surface, state.players, centers)
+
         label(surface, "Players", (700, 150), 30)
         for i, player in enumerate(state.players):
             y = 200 + i * 75

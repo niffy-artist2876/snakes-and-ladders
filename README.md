@@ -193,3 +193,15 @@ for visual inspection are written to pytest's temporary directory (use
 `--basetemp=/tmp/nfr09-validation` for a predictable location). The screens
 were visually inspected at all three sizes in headless SDL; native desktop
 window-manager behaviour remains a manual check on each supported OS.
+
+## Responsiveness (NFR-12)
+
+Token moves are animated over 0.3 s at up to 60 frames per second. Position is
+computed from elapsed time, so a slow frame makes the movement coarser but never
+longer. `tests/test_token_animation.py` checks the path, the snake and ladder
+slides, and input blocking while a token moves. It also plays 20 moves through
+the real application loop, logs the frame rate of each, and requires the
+average over all 20 to be at least 30 FPS. The average is used deliberately: a
+single stalled frame on a shared CI machine does not show the game renders
+below 30 FPS. Cloud timings do not certify the SRS 2.4 minimum hardware; repeat
+`python -m pytest tests/test_token_animation.py -q -s` there.
