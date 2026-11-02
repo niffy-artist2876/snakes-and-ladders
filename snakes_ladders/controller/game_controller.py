@@ -26,6 +26,7 @@ class GameController:
         self.error_message = None
         self.status_message = None
         self.pending_prompt = None
+        self._save_holds_this_game = False
 
     def start_new_game(self, configs, extra_turn=False):
         configs = validate_setup(configs)
@@ -35,6 +36,7 @@ class GameController:
         self.error_message = None
         self.status_message = None
         self.pending_prompt = None
+        self._save_holds_this_game = False
         self.screen = "game"
 
     def on_roll_requested(self):
@@ -44,6 +46,7 @@ class GameController:
         self.status_message = None
         self.last_result = self.engine.roll_and_move(self.state)
         if self.last_result.winner_index is not None:
+            self._discard_finished_save()
             self.screen = "result"
         else:
             self.state.phase = Phase.ANIMATING
@@ -65,6 +68,7 @@ class GameController:
         self.status_message = None
         try:
             self.save_manager.save(self.state)
+            self._save_holds_this_game = True
             self.status_message = "Game saved."
             self.error_message = None
             return True
@@ -84,6 +88,7 @@ class GameController:
         try:
             saved_state = self.save_manager.load()
             self.state = self.engine.from_saved(saved_state)
+            self._save_holds_this_game = True
             self.last_result = None
             self.error_message = None
             self.status_message = None
@@ -97,6 +102,15 @@ class GameController:
             logger.warning("%s: %s", type(error).__name__, error)
             self.error_message = "Save file is corrupted or has been modified."
             return False
+
+    def _discard_finished_save(self):
+        """A finished game cannot be resumed (SDD D-4), so drop the save that holds it.
+
+        A save that holds a different game is left alone.
+        """
+        if self._save_holds_this_game:
+            self.save_manager.clear()
+            self._save_holds_this_game = False
 
     def can_resume(self):
         """Check whether a save file exists for UI display (UI-4)."""

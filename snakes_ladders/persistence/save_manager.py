@@ -103,6 +103,14 @@ class SaveManager:
         except OSError:
             return False  # Unreadable metadata must not break setup rendering.
 
+    def clear(self) -> None:
+        """Delete the saved game, for example once the game it holds has been finished."""
+        try:
+            self.save_path.unlink(missing_ok=True)
+            logger.info("Saved game removed: %s", self.save_path)
+        except OSError as exc:
+            logger.warning("Could not remove the saved game: %s", exc)
+
     def save(self, state: GameState) -> None:
         """Serialise, checksum and atomically write game state (SDD 3.3 SD-3, NFR-11).
 
