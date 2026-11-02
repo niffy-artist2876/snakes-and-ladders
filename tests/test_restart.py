@@ -64,6 +64,8 @@ def test_confirm_restart_clears_session_keeps_save_and_starts_fresh(controller, 
     assert controller.on_save_requested()
     saved = controller.save_manager.save_path.read_bytes()
     if screen_name == "result":
+        # Finish a different game: finishing the saved game itself drops its save.
+        controller.start_new_game([PlayerConfig("Fin1", "blue"), PlayerConfig("Fin2", "orange")])
         controller.state.players[0].position = 97
         controller.on_roll_requested()
         screen = ResultScreen(controller)
