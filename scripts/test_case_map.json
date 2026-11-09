@@ -1,0 +1,292 @@
+{
+  "TC-SEC01-1": {
+    "tests": [
+      "tests/test_player_setup.py::test_valid_names_normalized",
+      "tests/test_player_setup.py::test_invalid_names_rejected"
+    ]
+  },
+  "TC-SEC01-2": {
+    "tests": [
+      "tests/test_player_setup.py::test_invalid_names_rejected"
+    ]
+  },
+  "TC-SEC01-3": {
+    "tests": [
+      "tests/test_player_setup.py::test_invalid_names_rejected",
+      "tests/test_player_setup.py::test_valid_names_normalized"
+    ]
+  },
+  "TC-SEC01-5": {
+    "tests": [
+      "tests/test_save_security.py::test_tc_sec03_5_range_violations"
+    ],
+    "note": "empty and 16-character names"
+  },
+  "TC-SEC03-8": {
+    "tests": [
+      "tests/test_error_handling.py::test_save_read_permission_failure_is_reported"
+    ],
+    "note": "unreadable file"
+  },
+  "TC-SEC04-3": {
+    "tests": [
+      "tests/test_save_security.py::test_tc_sec03_4_schema_and_type_violations"
+    ],
+    "note": "extra keys"
+  },
+  "TC-SEC06-1": {
+    "tests": [
+      "tests/test_availability.py::test_application_does_not_import_network_modules"
+    ]
+  },
+  "TC-SECX-2": {
+    "tests": [
+      "tests/test_error_handling.py::test_real_loop_recovers_logs_traceback_and_can_start_again"
+    ]
+  },
+  "TC-FR01-3": {
+    "tests": [
+      "tests/test_initialization.py::test_invalid_count_rejected_by_engine_and_controller",
+      "tests/test_setup_screen.py::test_four_player_selection_starts_all_players"
+    ]
+  },
+  "TC-FR02-1": {
+    "tests": [
+      "tests/test_player_setup.py::test_invalid_names_rejected"
+    ]
+  },
+  "TC-FR02-2": {
+    "tests": [
+      "tests/test_player_setup.py::test_duplicate_or_unsupported_player_details_rejected"
+    ]
+  },
+  "TC-FR02-3": {
+    "tests": [
+      "tests/test_player_setup.py::test_duplicate_or_unsupported_player_details_rejected"
+    ]
+  },
+  "TC-FR05-3": {
+    "tests": [
+      "tests/engine/test_movement.py::test_only_current_player_moves"
+    ]
+  },
+  "TC-FR11-1": {
+    "tests": [
+      "tests/test_board_view.py::test_all_numbers_follow_boustrophedon_order"
+    ]
+  },
+  "TC-FR13-1": {
+    "tests": [
+      "tests/test_token_animation.py::test_twenty_moves_in_the_real_loop_render_at_30_fps_or_better",
+      "tests/test_board_view.py::test_token_position_render_updates_within_one_second_of_roll_display"
+    ]
+  },
+  "TC-FR13-2": {
+    "tests": [
+      "tests/test_roll_performance.py::test_fifty_rolls_are_presented_within_one_second"
+    ],
+    "note": "50 rolls through the real loop, not 100"
+  },
+  "TC-FR16-1": {
+    "tests": [
+      "tests/test_results.py::test_standings_sorted_without_reordering_game_state"
+    ]
+  },
+  "TC-FR16-2": {
+    "tests": [
+      "tests/test_results.py::test_ties_preserve_setup_order"
+    ]
+  },
+  "TC-UI4-1": {
+    "tests": [
+      "tests/test_save_resume.py::test_ui_save_and_resume_buttons"
+    ]
+  },
+  "TC-C1-1": {
+    "tests": [
+      "tests/test_portability.py::test_supported_python_versions_are_declared"
+    ],
+    "evidence": "CI runs Python 3.10 and 3.12"
+  },
+  "TC-N01-1": {
+    "tests": [
+      "tests/test_roll_performance.py::test_fifty_rolls_are_presented_within_one_second"
+    ],
+    "note": "CI variant; reference-machine run pending"
+  },
+  "TC-N07-1": {
+    "tests": [
+      "tests/test_roll_performance.py::test_fifty_rolls_are_presented_within_one_second"
+    ],
+    "note": "CI variant; reference-machine run pending"
+  },
+  "TC-N06-1": {
+    "evidence": "CI coverage gate and docs/reports/code-coverage-report.md"
+  },
+  "TC-N06-2": {
+    "tests": [
+      "tests/test_no_pygame.py::test_engine_does_not_import_pygame"
+    ]
+  },
+  "TC-N08-1": {
+    "tests": [
+      "tests/test_data_integrity.py::test_twenty_save_resume_cycles_preserve_every_state_field"
+    ]
+  },
+  "TC-N10-1": {
+    "tests": [
+      "tests/test_error_handling.py::test_missing_empty_corrupt_saves_preserve_live_state",
+      "tests/test_error_handling.py::test_save_read_permission_failure_is_reported",
+      "tests/test_error_handling.py::test_write_fault_clears_stale_success_and_keeps_previous_save",
+      "tests/test_error_handling.py::test_hostile_setup_input_stays_editable_and_cannot_start"
+    ]
+  },
+  "TC-N14-1": {
+    "tests": [
+      "tests/test_resource_efficiency.py::test_four_player_gameplay_stays_within_memory_limit"
+    ],
+    "note": "CI variant; 30-minute run pending"
+  },
+  "TC-N14-2": {
+    "tests": [
+      "tests/test_resource_efficiency.py::test_largest_save_stays_within_10_kibibytes",
+      "tests/test_resource_efficiency.py::test_oversized_save_is_rejected_without_replacing_previous_save"
+    ]
+  },
+  "TC-FR15-6": {
+    "tests": [
+      "tests/test_finished_game_save.py::*"
+    ]
+  },
+  "TC-N12-2": {
+    "tests": [
+      "tests/test_token_animation.py::test_frame_rate_holds_when_the_os_sleep_overshoots"
+    ]
+  },
+  "TC-N05-2": {
+    "tests": [
+      "tests/test_portability.py::*"
+    ]
+  },
+  "TC-FR01-1": {
+    "tests": [
+      "tests/test_setup_screen.py::test_start_ignores_incomplete_setup_then_starts_valid_players"
+    ]
+  },
+  "TC-FR01-2": {
+    "tests": [
+      "tests/test_setup_screen.py::test_start_ignores_incomplete_setup_then_starts_valid_players"
+    ]
+  },
+  "TC-FR02-4": {
+    "tests": [
+      "tests/test_setup_screen.py::test_edit_names_and_change_colours",
+      "tests/test_setup_screen.py::test_four_player_selection_starts_all_players"
+    ]
+  },
+  "TC-FR11-2": {
+    "tests": [
+      "tests/test_board_view.py::test_all_numbers_follow_boustrophedon_order",
+      "tests/test_board_view.py::test_every_snake_and_ladder_has_visible_endpoints"
+    ]
+  },
+  "TC-FR11-3": {
+    "tests": [
+      "tests/test_board_view.py::test_four_tokens_remain_distinct_on_every_square_and_at_start"
+    ]
+  },
+  "TC-FR12-1": {
+    "tests": [
+      "tests/test_turn_indicator.py::test_indicator_tracks_turns_and_wraparound_for_all_player_counts",
+      "tests/engine/test_extra_turn.py::test_six_grants_an_extra_roll"
+    ]
+  },
+  "TC-FR12-2": {
+    "tests": [
+      "tests/test_turn_indicator.py::test_indicator_persists_without_input_and_fits_maximum_length_name",
+      "tests/test_save_resume.py::test_tc_fr15_1_save_and_resume_exact_state"
+    ]
+  },
+  "TC-FR14-1": {
+    "tests": [
+      "tests/test_restart.py::test_restart_cancel_preserves_entire_state_and_blocks_background_input"
+    ]
+  },
+  "TC-FR14-2": {
+    "tests": [
+      "tests/test_restart.py::test_confirm_restart_clears_session_keeps_save_and_starts_fresh"
+    ],
+    "note": "process ID check is manual"
+  },
+  "TC-FR14-3": {
+    "tests": [
+      "tests/test_restart.py::test_confirm_restart_clears_session_keeps_save_and_starts_fresh"
+    ]
+  },
+  "TC-FR16-3": {
+    "tests": [
+      "tests/test_results.py::test_every_player_appears_once"
+    ]
+  },
+  "TC-FR18-1": {
+    "tests": [
+      "tests/test_exit.py::test_window_close_uses_prompt_and_cancel_then_discard"
+    ]
+  },
+  "TC-FR18-2": {
+    "tests": [
+      "tests/test_exit.py::test_save_and_exit_writes_loadable_current_state"
+    ]
+  },
+  "TC-FR18-3": {
+    "tests": [
+      "tests/test_exit.py::test_exit_without_saving_preserves_existing_save"
+    ]
+  },
+  "TC-FR18-4": {
+    "tests": [
+      "tests/test_exit.py::test_cancel_preserves_session_and_rolling_still_works"
+    ]
+  },
+  "TC-FR18-5": {
+    "tests": [
+      "tests/test_exit.py::test_exit_without_active_game_needs_no_prompt",
+      "tests/test_exit.py::test_setup_exit_button_closes_application",
+      "tests/test_exit.py::test_window_close_uses_prompt_and_cancel_then_discard"
+    ]
+  },
+  "TC-FR18-6": {
+    "tests": [
+      "tests/test_exit.py::test_exit_during_move_disables_save_until_animation_finishes"
+    ]
+  },
+  "TC-UI3-1": {
+    "tests": [
+      "tests/test_setup_screen.py::test_result_screen_buttons_and_rendering"
+    ]
+  },
+  "TC-N13-1": {
+    "tests": [
+      "tests/test_accessibility.py::test_all_screens_use_at_least_fourteen_point_text"
+    ]
+  },
+  "TC-N13-2": {
+    "tests": [
+      "tests/test_accessibility.py::test_palette_stays_separated_under_colour_vision_simulation",
+      "tests/test_accessibility.py::test_token_number_contrast_in_normal_and_simulated_vision"
+    ],
+    "note": "simulated, not a human check"
+  },
+  "TC-N04-1": {
+    "tests": [
+      "tests/test_availability.py::test_application_launches_to_setup_when_network_is_blocked"
+    ],
+    "note": "CI variant; the run with the network off on each system is manual"
+  },
+  "TC-N02-1": {
+    "tests": [
+      "tests/test_usability.py::test_setup_and_first_complete_turn_through_real_ui"
+    ],
+    "note": "automated flow only; the five-user study is pending"
+  }
+}

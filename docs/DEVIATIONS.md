@@ -30,6 +30,7 @@ Checked against `main` on 2 November 2026. Status "Open" means the gap remains, 
 | DEV-12 | TC-N14-1: peak memory of the application | The CI check runs the 300-frame loop in a fresh Python process and measures that process. Measuring inside pytest counted memory left by about 380 earlier tests. The 30-minute run on target hardware is still to do. | Pending |
 | DEV-13 | TC-N05-1: smoke script on Windows 10/11, Ubuntu 22.04+ and macOS 13+ | The headless smoke tests cover launch, setup, three turns, finishing a game and starting a new game. They have no save, exit, relaunch or resume steps. CI uses the latest macOS runner, not macOS 13. | Open |
 | DEV-14 | Test setup | `tests/conftest.py` makes token moves instant in every test except those marked `real_animation`. | Accepted |
+| DEV-15 | Test cases carry their plan ID in the test code | Most do. 53 cases are linked to existing tests in `scripts/test_case_map.json` instead, and the report generator checks each link. | Accepted |
 
 ## Evidence still to collect
 

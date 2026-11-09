@@ -20,6 +20,7 @@
 |---|---|---|---|
 | 1.0 | 29-09-2026 | Initial test plan with test case specifications and SRS traceability | Team |
 | 1.1 | 02-11-2026 | Added execution status (section 16); R1 allows three attempts | Team |
+| 1.2 | 10-11-2026 | Added cases TC-FR15-6, TC-N05-2 and TC-N12-2; levels updated for hardware runs; cases mapped to tests (section 16) | Team |
 
 ---
 
@@ -374,6 +375,7 @@ Rule tests use a scripted RNG, so every expected position below is exact. Square
 | TC-FR15-3 | Save twice with different states, then Resume | Only the latest save is loaded. No `savegame.json.tmp` remains | Ia | FR-15 |
 | TC-FR15-4 | Save a game with extra-turn off; resume; roll a 6 | Option is still off: no extra roll | Ia | FR-15, FR-08 |
 | TC-FR15-5 | Save at the start of a game (all positions 0) and again with a player on 99; Resume each | Save is possible at both points and each resumes correctly | Ia | FR-15 |
+| TC-FR15-6 | Save a game, resume it, play it to a win, then check Resume. Separately save game A, start a fresh game B that was never saved, and finish B | The save of the finished game is removed and Resume is disabled, because a finished game cannot be resumed (D-4). The save of game A is kept | Ia | FR-15 |
 | TC-FR16-1 | Finish a game with positions 100, 45, 60, 12 | Result shows the winner's name and standings in the order 100, 60, 45, 12 (descending position) | Ua, Sm | FR-16 |
 | TC-FR16-2 | Two players tied at 45 | Tied players are ranked in setup order (SDD 3.6.2) | Ua | FR-16 |
 | TC-FR16-3 | Finish a 2-player, a 3-player and a 4-player game | Every player appears in the standings | Sm | FR-16 |
@@ -403,22 +405,24 @@ Rule tests use a scripted RNG, so every expected position below is exact. Square
 
 | ID | Scenario and input | Expected result | Level | Req |
 |---|---|---|---|---|
-| TC-N01-1 | On the minimum-hardware reference machine, 2 players, log the time from roll input to dice value and final token position for 50 rolls | All 50 are at or below 1 s | Sa | NFR-01 |
+| TC-N01-1 | On the minimum-hardware reference machine, 2 players, log the time from roll input to dice value and final token position for 50 rolls | All 50 are at or below 1 s | Sa, Sm | NFR-01 |
 | TC-N02-1 | 5 first-time users, no help: set up a 2-player game and complete one full turn. Time each with a stopwatch and note where they hesitate | At least 4 of 5 succeed within 2 minutes | Am | NFR-02 |
 | TC-N03-1 | Play 100 automated full games with the production RNG through the controller. After every move assert the SDD 3.2 invariants (position 0 to 100, valid current index, one winner at most, nobody on a snake head or ladder base, correct turn order and extra-roll counts). Cap each game at 5,000 rolls | 100 games finish with zero rule violations and none hits the cap. The seed of any failing game is logged so it can be replayed | Ia | NFR-03 |
 | TC-N04-1 | On each of the 3 operating systems disable the network (airplane mode or adapter off), launch, and run setup, a few turns, save and resume | Application reaches the Start screen and works normally | Sm | NFR-04, C2 |
 | TC-N05-1 | Run the same source tree on Windows 10/11, Ubuntu 22.04+ and macOS 13+. Smoke script: launch, setup, 3 turns, save, exit, relaunch, resume, restart, exit; then a game finished from a save factory state near square 94 | The script passes on every system with no source change | Sm | NFR-05 |
+| TC-N05-2 | Scan all source for operating-system checks (`sys.platform`, `os.name`, `subprocess` and similar) and hard-coded absolute paths. Run the headless smoke script: launch, setup, 3 turns, finish a game, new game | No operating-system-specific code. The script passes on every CI system (Windows, Ubuntu 22.04, latest Ubuntu, latest macOS) | Sa | NFR-05 |
 | TC-N06-1 | Run `coverage run -m pytest tests/engine tests/persistence tests/controller` and report by package | Statement coverage of `engine/` is 80% or more. `persistence/` and `controller/` are reported (target 80%, not gating) | Ua | NFR-06 |
 | TC-N06-2 | AST scan of `engine/` for Pygame imports; also run the engine tests with the `pygame` module made unavailable | No Pygame import in `engine/`. Engine tests pass without Pygame | Ua | NFR-06, C4 |
-| TC-N07-1 | Repeat TC-N01-1 with 4 players | All 50 rolls at or below 1 s. Mean and maximum are reported next to the 2-player result | Sa | NFR-07 |
+| TC-N07-1 | Repeat TC-N01-1 with 4 players | All 50 rolls at or below 1 s. Mean and maximum are reported next to the 2-player result | Sa, Sm | NFR-07 |
 | TC-N08-1 | `tests/test_data_integrity.py`: 20 save and resume cycles over varied states: 2, 3 and 4 players; positions 0 and 99; last roll `null` and 6; extra roll pending; extra-turn on and off. Compare every field before and after. In 5 of them save again right after resume and compare a third time | All fields identical in all 20 cycles, and a second save/resume changes nothing | Ia | NFR-08 |
 | TC-N09-1 | Check the Start, Setup, Game and Result screens at 1280 x 720, 1366 x 768 and 1920 x 1080, windowed and full screen, with a checklist | No clipped, overlapping or unreachable element at any size | Sm | NFR-09 |
 | TC-N10-1 | Fault matrix: missing save file, 0-byte file, corrupted file, non-UTF-8 file, read-only save directory, full disk (small temporary file system), invalid names, hostile key sequences | Zero unhandled exceptions or tracebacks. Each case shows a message ("Could not save the game." for E-10) and leaves a usable screen | Ia, Sm | NFR-10, A4 |
 | TC-N11-1 | Interrupt a save 10 times: kill the process at random moments, and inject a failure after the temporary file is written but before `os.replace`. Keep a previous valid save | The previous `savegame.json` is byte-identical and loads each time. A leftover `.tmp` file is ignored and replaced by the next save | Ia, Sm | NFR-11 |
-| TC-N12-1 | Log frame times during 20 moves (including long snake and ladder moves) on the minimum-hardware machine | Frame rate is 30 FPS or more (per-second average during animation, OI-7) | Sa | NFR-12 |
+| TC-N12-1 | Log frame times during 20 moves (including long snake and ladder moves) on the minimum-hardware machine | Frame rate is 30 FPS or more (per-second average during animation, OI-7) | Sa, Sm | NFR-12 |
+| TC-N12-2 | Play 6 moves through the real loop with a clock whose every sleep overshoots by 35 ms (the macOS CI symptom) | The frame rate stays at 30 FPS or more, because frames are paced without sleeping while a token moves (SDD 6.2) | Sa | NFR-12 |
 | TC-N13-1 | Audit every text element at 1280 x 720 | All text is at least 14 pt (about 19 px at 96 DPI, OI-8) | Um | NFR-13 |
 | TC-N13-2 | Take screenshots of the Game screen and run them through protanopia, deuteranopia and tritanopia simulators | The 4 tokens can be told apart, and each also shows its number label | Um | NFR-13 |
-| TC-N14-1 | CI samples process RSS during 300 rendered gameplay frames; for release acceptance, sample the standalone application's memory every second over a 30-minute session with 10 save/resume cycles and 4-player games | Peak memory is 200 MB or less | Sa | NFR-14 |
+| TC-N14-1 | CI samples process RSS during 300 rendered gameplay frames; for release acceptance, sample the standalone application's memory every second over a 30-minute session with 10 save/resume cycles and 4-player games | Peak memory is 200 MB or less | Sa, Sm | NFR-14 |
 | TC-N14-2 | Save the largest possible state (4 players, longest allowed names), check the file size, and verify an oversized payload is rejected without replacing the previous save | At most 10,240 bytes (OI-5); oversized save leaves the previous file intact | Ua | NFR-14 |
 | TC-N15-1 | Take 60,000 rolls from the production `DiceService` and count each value (expected 10,000 each) | Chi-square statistic (5 degrees of freedom, 5% level) is below 11.07. Rerun policy in R1 | Ua | NFR-15 |
 
@@ -569,7 +573,7 @@ Every test case in Section 5 lists the SRS requirement it verifies. The matrices
 | FR-12 | Turn Indicator | H | TC-FR12-1, TC-FR12-2, TC-FR05-2 |
 | FR-13 | Game State Update | H | TC-FR13-1, TC-FR13-2, TC-N01-1 |
 | FR-14 | Game Restart | H | TC-FR14-1, TC-FR14-2, TC-FR14-3 |
-| FR-15 | Save and Resume | M | TC-FR15-1, TC-FR15-2, TC-FR15-3, TC-FR15-4, TC-FR15-5, TC-FR18-2, TC-FR08-4, TC-N08-1, TC-SEC02-1 |
+| FR-15 | Save and Resume | M | TC-FR15-1, TC-FR15-2, TC-FR15-3, TC-FR15-4, TC-FR15-5, TC-FR18-2, TC-FR08-4, TC-N08-1, TC-SEC02-1, TC-FR15-6 |
 | FR-16 | Result Display | H | TC-FR16-1, TC-FR16-2, TC-FR16-3, TC-UI3-1 |
 | FR-17 | Invalid Action Handling | H | TC-FR17-1, TC-FR17-2, TC-FR17-3, TC-FR17-4, TC-FR17-5, TC-FR18-6 |
 | FR-18 | Exit Game | H | TC-FR18-1, TC-FR18-2, TC-FR18-3, TC-FR18-4, TC-FR18-5, TC-FR18-6 |
@@ -601,14 +605,14 @@ Every test case in Section 5 lists the SRS requirement it verifies. The matrices
 | NFR-02 | Usability | TC-N02-1 |
 | NFR-03 | Reliability | TC-N03-1 |
 | NFR-04 | Availability | TC-N04-1, TC-SEC06-3 |
-| NFR-05 | Portability | TC-N05-1 |
+| NFR-05 | Portability | TC-N05-1, TC-N05-2 |
 | NFR-06 | Maintainability | TC-N06-1, TC-N06-2 |
 | NFR-07 | Scalability | TC-N07-1 |
 | NFR-08 | Data Integrity | TC-N08-1, TC-FR15-1, TC-SEC02-4 |
 | NFR-09 | Compatibility | TC-N09-1 |
 | NFR-10 | Error Handling | TC-N10-1, TC-SEC01-4, TC-SEC03-2, TC-SEC03-3, TC-SEC03-8, TC-SECX-2 |
 | NFR-11 | Recoverability | TC-N11-1 |
-| NFR-12 | Responsiveness | TC-N12-1 |
+| NFR-12 | Responsiveness | TC-N12-1, TC-N12-2 |
 | NFR-13 | Accessibility | TC-N13-1, TC-N13-2, TC-FR02-4 |
 | NFR-14 | Resource Efficiency | TC-N14-1, TC-N14-2, TC-SEC03-1 |
 | NFR-15 | Randomness Quality | TC-N15-1, TC-SEC04-5, TC-SEC04-6 |
@@ -722,13 +726,36 @@ The test cases follow the SDD where the SRS is ambiguous. These points should be
 
 ## 16. Execution status
 
-Status on 2 November 2026, against `main`.
+Status on 10 November 2026, against `main`. The generated reports are in `docs/reports/`.
 
-Automated cases: 448 tests pass. CI runs them on Windows, Ubuntu 22.04, the latest Ubuntu and the latest macOS, on Python 3.10 and 3.12. Statement coverage of `engine/` is about 99%, above the 80% gate in NFR-06.
+### 16.1 Results
 
-Cases still to run by hand: the NFR-02 usability study (0 of 5 participants), the NFR-01, NFR-07, NFR-12 and NFR-14 measurements on the reference machine, and the NFR-05 and NFR-09 checks on a real display on each operating system.
+479 automated tests pass. CI runs them on Windows, Ubuntu 22.04, the latest Ubuntu and the latest macOS, on Python 3.10 and 3.12. Statement coverage is 95.3% and branch coverage is 89.7%. Statement coverage of `engine/` is 98.7%, above the 80% gate in NFR-06.
 
-Risk R1 now allows three attempts instead of two. Other differences between this plan and what was run are listed in `docs/DEVIATIONS.md` (DEV-10 to DEV-14).
+Of the 126 cases in this plan:
+
+| Status | Cases |
+|---|---|
+| Passed (automated) | 71 |
+| Automated part passed, manual or hardware part still to run | 46 |
+| Manual only, not run | 9 |
+
+Test code carries a case ID in a comment or name, or a link is recorded in `scripts/test_case_map.json`. The report generator checks that every linked test exists and passed, so the table in `docs/reports/system-validation-report.md` cannot drift from the suite.
+
+The nine manual cases not run are TC-SEC04-2, TC-SEC05-3, TC-SEC06-3, TC-SECX-1, TC-UI1-1, TC-UI2-1, TC-FR17-4, TC-HW-1 and TC-N09-1. Cases that need the minimum-hardware machine or a real display on each operating system are among the 46, and so is the NFR-02 usability study (0 of 5 participants). TC-UI1-1 expects an extra-turn control on the setup screen. There is none (DEV-01), so that case would fail if run.
+
+### 16.2 Changes since version 1.0
+
+| Case | Change | Reason |
+|---|---|---|
+| TC-N08-1, TC-N14-1, TC-N14-2 | Wording now names the tests and the CI memory sampling | NFR-08 and NFR-14 were implemented |
+| TC-N01-1, TC-N07-1, TC-N12-1, TC-N14-1 | Level changed from Sa to Sa, Sm | CI runs an automated variant. The reference-machine run stays manual |
+| TC-FR15-6 | Added | A finished game's save is now removed, so Resume cannot reload it |
+| TC-N05-2 | Added | Records the operating-system scan and the headless smoke script |
+| TC-N12-2 | Added | Records the frame-rate check with overshooting sleeps (DEV-07) |
+| R1 | Three attempts instead of two | Two attempts still turned about 3% of CI runs red by chance (DEV-10) |
+
+Other differences between this plan and what was run are listed in `docs/DEVIATIONS.md`.
 
 ---
 
