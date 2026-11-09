@@ -1,7 +1,7 @@
 # Branch coverage report
 
-- Date: 2026-11-09
-- Commit: c07ddfc on branch docs-reports
+- Date: 2026-11-10
+- Commit: 38dab5f on branch test-plan-sync
 - Python 3.12.4 on Windows-11-10.0.26300-SP0
 - Pygame 2.6.1, run headless (SDL dummy video and audio drivers)
 - Command: `python scripts/generate_reports.py`
